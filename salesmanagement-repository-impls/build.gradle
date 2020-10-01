@@ -1,0 +1,69 @@
+plugins {
+    id 'java'
+    id "org.flywaydb.flyway" version "7.0.0"
+    id 'nu.studer.jooq' version '5.1.1'
+}
+
+sourceCompatibility = JavaVersion.VERSION_14
+targetCompatibility = JavaVersion.VERSION_14
+
+configurations {
+    flywayMigration
+}
+
+dependencies {
+    compile group: 'javax.inject', name: 'javax.inject', version: '1'
+    compile group: 'org.jooq', name: 'jooq', version: '3.13.5'
+    compile project(':salesmanagement-usecases')
+
+    flywayMigration 'org.postgresql:postgresql:42.2.16'
+    jooqGenerator 'org.postgresql:postgresql:42.2.16'
+}
+
+flyway {
+    configurations = ['flywayMigration']
+    url = 'jdbc:postgresql://localhost:5432/salesmanagement_development'
+    user = 'dev'
+    password = 'dev'
+}
+
+jooq {
+    configurations {
+        main {
+            generationTool {
+                logging = org.jooq.meta.jaxb.Logging.WARN
+                jdbc {
+                    driver = 'org.postgresql.Driver'
+                    url = flyway.url
+                    user = flyway.user
+                    password = flyway.password
+                }
+                generator {
+                    name = 'org.jooq.codegen.DefaultGenerator'
+                    database {
+                        name = 'org.jooq.meta.postgres.PostgresDatabase'
+                        inputSchema = 'public'
+                        includes = '.*'
+                        excludes = ''
+                    }
+                    target {
+                        packageName = 'jp.co.ryoutanomura.salesmanagement.jooq'
+                    }
+                }
+            }
+        }
+    }
+}
+tasks.named('generateJooq').configure {
+    // ensure database schema has been prepared by Flyway before generating the jOOQ sources
+    dependsOn tasks.named('flywayMigrate')
+
+    // declare Flyway migration scripts as inputs on the jOOQ task
+    inputs.files(fileTree('src/main/resources/db/migration'))
+            .withPropertyName('migrations')
+            .withPathSensitivity(PathSensitivity.RELATIVE)
+
+    // make jOOQ task participate in incremental builds and build caching
+    allInputsDeclared = true
+    outputs.cacheIf { true }
+}

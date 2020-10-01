@@ -1,0 +1,85 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '2.3.4.RELEASE'
+    id 'io.spring.dependency-management' version '1.0.10.RELEASE'
+    id "org.flywaydb.flyway" version "7.0.0"
+    id 'nu.studer.jooq' version '5.1.1'
+}
+
+sourceCompatibility = JavaVersion.VERSION_14
+targetCompatibility = JavaVersion.VERSION_14
+
+configurations {
+    flywayMigration
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+dependencies {
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
+    implementation 'org.springframework.boot:spring-boot-starter-jooq'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation group: 'javax.inject', name: 'javax.inject', version: '1'
+    implementation group: 'org.jooq', name: 'jooq', version: '3.13.5'
+    implementation project(':salesmanagement-adapters')
+
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+    testImplementation('org.springframework.boot:spring-boot-starter-test') {
+        exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
+    }
+
+    runtime group: 'org.postgresql', name: 'postgresql', version: '42.2.16'
+
+    flywayMigration 'org.postgresql:postgresql:42.2.16'
+    jooqGenerator 'org.postgresql:postgresql:42.2.16'
+}
+
+flyway {
+    configurations = ['flywayMigration']
+    url = 'jdbc:postgresql://localhost:5432/salesmanagement_development'
+    user = 'dev'
+    password = 'dev'
+}
+
+jooq {
+    configurations {
+        main {
+            generationTool {
+                logging = org.jooq.meta.jaxb.Logging.WARN
+                jdbc {
+                    driver = 'org.postgresql.Driver'
+                    url = flyway.url
+                    user = flyway.user
+                    password = flyway.password
+                }
+                generator {
+                    name = 'org.jooq.codegen.DefaultGenerator'
+                    database {
+                        name = 'org.jooq.meta.postgres.PostgresDatabase'
+                        inputSchema = 'public'
+                        includes = '.*'
+                        excludes = ''
+                    }
+                    target {
+                        packageName = 'jp.co.ryoutanomura.salesmanagement.jooq'
+                    }
+                }
+            }
+        }
+    }
+}
+tasks.named('generateJooq').configure {
+    // ensure database schema has been prepared by Flyway before generating the jOOQ sources
+    dependsOn tasks.named('flywayMigrate')
+
+    // declare Flyway migration scripts as inputs on the jOOQ task
+    inputs.files(fileTree('src/main/resources/db/migration'))
+            .withPropertyName('migrations')
+            .withPathSensitivity(PathSensitivity.RELATIVE)
+
+    // make jOOQ task participate in incremental builds and build caching
+    allInputsDeclared = true
+    outputs.cacheIf { true }
+}

@@ -1,0 +1,45 @@
+plugins {
+    id 'java'
+}
+
+subprojects {
+    apply plugin: 'java'
+
+    repositories {
+        mavenCentral()
+    }
+
+    sourceCompatibility = JavaVersion.VERSION_14
+    targetCompatibility = JavaVersion.VERSION_14
+
+    dependencies {
+        compileOnly 'org.projectlombok:lombok:1.18.12'
+        annotationProcessor 'org.projectlombok:lombok:1.18.12'
+
+        testCompileOnly 'org.projectlombok:lombok:1.18.12'
+        testAnnotationProcessor 'org.projectlombok:lombok:1.18.12'
+    }
+}
+
+
+project(':salesmanagement-adapters') {
+    dependencies {
+        compile group: 'javax.inject', name: 'javax.inject', version: '1'
+        compile project(':salesmanagement-usecases')
+    }
+}
+
+project(':salesmanagement-usecases') {
+    dependencies {
+        compile group: 'javax.inject', name: 'javax.inject', version: '1'
+        compile project(':salesmanagement-entities')
+    }
+}
+
+project(':salesmanagement-entities') {
+    dependencies {
+        compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.11'
+        compile group: 'com.google.guava', name: 'guava', version: '29.0-jre'
+    }
+
+}

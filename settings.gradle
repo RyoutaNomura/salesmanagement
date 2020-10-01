@@ -1,0 +1,4 @@
+include 'salesmanagement-entities',
+        'salesmanagement-usecases',
+        'salesmanagement-adapters',
+        'salesmanagement-app'
