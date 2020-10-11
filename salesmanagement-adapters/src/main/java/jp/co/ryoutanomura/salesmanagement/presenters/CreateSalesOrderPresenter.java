@@ -1,7 +1,7 @@
 package jp.co.ryoutanomura.salesmanagement.presenters;
 
 import javax.inject.Named;
-import jp.co.ryoutanomura.salesmanagement.usecases.CreateSalesOrderUsecaseResponse;
+import jp.co.ryoutanomura.salesmanagement.usecases.salesorder.CreateSalesOrderUsecaseResponse;
 import jp.co.ryoutanomura.salesmanagement.viewmodels.SalesOrderViewModel;
 
 @Named

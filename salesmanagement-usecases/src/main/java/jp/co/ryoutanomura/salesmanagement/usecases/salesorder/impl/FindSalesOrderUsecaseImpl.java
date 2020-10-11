@@ -1,12 +1,12 @@
-package jp.co.ryoutanomura.salesmanagement.usecases.impl;
+package jp.co.ryoutanomura.salesmanagement.usecases.salesorder.impl;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import jp.co.ryoutanomura.salesmanagement.entities.SalesOrder;
 import jp.co.ryoutanomura.salesmanagement.repositories.SalesOrderRepository;
-import jp.co.ryoutanomura.salesmanagement.usecases.FindSalesOrderUsecase;
-import jp.co.ryoutanomura.salesmanagement.usecases.FindSalesOrderUsecaseParams;
-import jp.co.ryoutanomura.salesmanagement.usecases.FindSalesOrderUsecaseResponse;
+import jp.co.ryoutanomura.salesmanagement.usecases.salesorder.FindSalesOrderUsecase;
+import jp.co.ryoutanomura.salesmanagement.usecases.salesorder.FindSalesOrderUsecaseParams;
+import jp.co.ryoutanomura.salesmanagement.usecases.salesorder.FindSalesOrderUsecaseResponse;
 import lombok.AllArgsConstructor;
 import lombok.val;
 
@@ -18,8 +18,8 @@ public class FindSalesOrderUsecaseImpl implements FindSalesOrderUsecase {
   private final SalesOrderRepository repo;
 
   @Override
-  public FindSalesOrderUsecaseResponse exec(FindSalesOrderUsecaseParams params) {
-    val entity = repo.find(params.getId());
+  public FindSalesOrderUsecaseResponse exec(final FindSalesOrderUsecaseParams params) {
+    val entity = this.repo.find(params.getId());
     return FindSalesOrderUsecaseResponse.builder()
         .salesOrder(entity.orElse(SalesOrder.builder().id(null).build())).build();
   }

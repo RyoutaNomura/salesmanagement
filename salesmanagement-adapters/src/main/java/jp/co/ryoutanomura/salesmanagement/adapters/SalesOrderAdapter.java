@@ -7,14 +7,17 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Named;
-import jp.co.ryoutanomura.salesmanagement.entities.Customer;
-import jp.co.ryoutanomura.salesmanagement.entities.Item;
 import jp.co.ryoutanomura.salesmanagement.presenters.CreateSalesOrderPresenter;
 import jp.co.ryoutanomura.salesmanagement.presenters.FindSalesOrderPresenter;
-import jp.co.ryoutanomura.salesmanagement.usecases.CreateSalesOrderUsecase;
-import jp.co.ryoutanomura.salesmanagement.usecases.CreateSalesOrderUsecaseParams;
-import jp.co.ryoutanomura.salesmanagement.usecases.FindSalesOrderUsecase;
-import jp.co.ryoutanomura.salesmanagement.usecases.FindSalesOrderUsecaseParams;
+import jp.co.ryoutanomura.salesmanagement.usecases.customer.FindCustomerUsecase;
+import jp.co.ryoutanomura.salesmanagement.usecases.customer.FindCustomerUsecaseParams;
+import jp.co.ryoutanomura.salesmanagement.usecases.item.FindItemUsecase;
+import jp.co.ryoutanomura.salesmanagement.usecases.item.FindItemUsecaseParams;
+import jp.co.ryoutanomura.salesmanagement.usecases.salesorder.CreateSalesOrderUsecase;
+import jp.co.ryoutanomura.salesmanagement.usecases.salesorder.CreateSalesOrderUsecaseParams;
+import jp.co.ryoutanomura.salesmanagement.usecases.salesorder.CreateSalesOrderUsecaseParams.DetailParams;
+import jp.co.ryoutanomura.salesmanagement.usecases.salesorder.FindSalesOrderUsecase;
+import jp.co.ryoutanomura.salesmanagement.usecases.salesorder.FindSalesOrderUsecaseParams;
 import jp.co.ryoutanomura.salesmanagement.viewmodels.SalesOrderViewModel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -33,6 +36,10 @@ public class SalesOrderAdapter {
   private final FindSalesOrderUsecase findSalesOrderUsecase;
   @Inject
   private final FindSalesOrderPresenter findSalesOrderPresenter;
+  @Inject
+  private final FindItemUsecase findItemUsecase;
+  @Inject
+  private final FindCustomerUsecase findCustomerUsecase;
 
   public SalesOrderViewModel find(final UUID id) {
     val res = this.findSalesOrderUsecase.exec(FindSalesOrderUsecaseParams.builder().id(id).build());
@@ -42,14 +49,23 @@ public class SalesOrderAdapter {
   public SalesOrderViewModel create(final UUID customerId, final LocalDate orderDate,
       final List<SalesOrderControllerParams> details) {
 
-    val customer = Customer.builder().build();// customerRepo.find(customerId);
-    val item = Item.builder().build();
+    val customer = this.findCustomerUsecase.exec(
+        FindCustomerUsecaseParams
+            .builder()
+            .id(customerId)
+            .build()
+    );
     val input = CreateSalesOrderUsecaseParams.builder()
-        .customer(customer)
+        .customer(customer.getCustomer())
         .orderDate(orderDate)
         .details(details.stream()
-            .map(d -> CreateSalesOrderUsecaseParams.DetailParams.builder()
-                .item(item)
+            .map(d -> DetailParams.builder()
+                .item(this.findItemUsecase.exec(FindItemUsecaseParams
+                        .builder()
+                        .id(d.getItemId())
+                        .build()
+                    ).getItem()
+                )
                 .price(d.getPrice())
                 .quantity(d.getQuantity())
                 .build()

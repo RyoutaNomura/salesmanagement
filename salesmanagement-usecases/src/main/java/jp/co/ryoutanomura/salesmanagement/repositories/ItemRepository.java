@@ -1,9 +1,10 @@
 package jp.co.ryoutanomura.salesmanagement.repositories;
 
+import java.util.Optional;
 import java.util.UUID;
 import jp.co.ryoutanomura.salesmanagement.entities.Item;
 
 public interface ItemRepository {
 
-  Item find(UUID id);
+  Optional<Item> find(UUID id);
 }

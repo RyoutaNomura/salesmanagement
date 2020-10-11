@@ -1,13 +1,13 @@
-package jp.co.ryoutanomura.salesmanagement.usecases.impl;
+package jp.co.ryoutanomura.salesmanagement.usecases.salesorder.impl;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import jp.co.ryoutanomura.salesmanagement.entities.SalesOrder;
 import jp.co.ryoutanomura.salesmanagement.entities.SalesOrderDetail;
 import jp.co.ryoutanomura.salesmanagement.repositories.SalesOrderRepository;
-import jp.co.ryoutanomura.salesmanagement.usecases.CreateSalesOrderUsecase;
-import jp.co.ryoutanomura.salesmanagement.usecases.CreateSalesOrderUsecaseParams;
-import jp.co.ryoutanomura.salesmanagement.usecases.CreateSalesOrderUsecaseResponse;
+import jp.co.ryoutanomura.salesmanagement.usecases.salesorder.CreateSalesOrderUsecase;
+import jp.co.ryoutanomura.salesmanagement.usecases.salesorder.CreateSalesOrderUsecaseParams;
+import jp.co.ryoutanomura.salesmanagement.usecases.salesorder.CreateSalesOrderUsecaseResponse;
 import lombok.AllArgsConstructor;
 import lombok.val;
 
@@ -19,7 +19,7 @@ public class CreateSalesOrderUsecaseImpl implements CreateSalesOrderUsecase {
   private final SalesOrderRepository repository;
 
   @Override
-  public CreateSalesOrderUsecaseResponse exec(CreateSalesOrderUsecaseParams params) {
+  public CreateSalesOrderUsecaseResponse exec(final CreateSalesOrderUsecaseParams params) {
     val salesOrder = SalesOrder.builder()
         .customer(params.getCustomer())
         .orderDate(params.getOrderDate())
@@ -37,7 +37,7 @@ public class CreateSalesOrderUsecaseImpl implements CreateSalesOrderUsecase {
         )
     );
 
-    repository.save(salesOrder);
+    this.repository.save(salesOrder);
 
     val response = new CreateSalesOrderUsecaseResponse(salesOrder);
     return response;

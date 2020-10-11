@@ -1,4 +1,4 @@
-package jp.co.ryoutanomura.salesmanagement.usecases;
+package jp.co.ryoutanomura.salesmanagement.usecases.salesorder;
 
 import java.util.UUID;
 import lombok.Builder;
