@@ -7,7 +7,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Named;
-import jp.co.ryoutanomura.salesmanagement.presenters.CreateSalesOrderPresenter;
 import jp.co.ryoutanomura.salesmanagement.presenters.FindSalesOrderPresenter;
 import jp.co.ryoutanomura.salesmanagement.usecases.customer.FindCustomerUsecase;
 import jp.co.ryoutanomura.salesmanagement.usecases.customer.FindCustomerUsecaseParams;
@@ -15,7 +14,6 @@ import jp.co.ryoutanomura.salesmanagement.usecases.item.FindItemUsecase;
 import jp.co.ryoutanomura.salesmanagement.usecases.item.FindItemUsecaseParams;
 import jp.co.ryoutanomura.salesmanagement.usecases.salesorder.CreateSalesOrderUsecase;
 import jp.co.ryoutanomura.salesmanagement.usecases.salesorder.CreateSalesOrderUsecaseParams;
-import jp.co.ryoutanomura.salesmanagement.usecases.salesorder.CreateSalesOrderUsecaseParams.DetailParams;
 import jp.co.ryoutanomura.salesmanagement.usecases.salesorder.FindSalesOrderUsecase;
 import jp.co.ryoutanomura.salesmanagement.usecases.salesorder.FindSalesOrderUsecaseParams;
 import jp.co.ryoutanomura.salesmanagement.viewmodels.SalesOrderViewModel;
@@ -31,8 +29,6 @@ public class SalesOrderAdapter {
   @Inject
   private final CreateSalesOrderUsecase createSalesOrderUsecase;
   @Inject
-  private final CreateSalesOrderPresenter presenter;
-  @Inject
   private final FindSalesOrderUsecase findSalesOrderUsecase;
   @Inject
   private final FindSalesOrderPresenter findSalesOrderPresenter;
@@ -46,20 +42,19 @@ public class SalesOrderAdapter {
     return this.findSalesOrderPresenter.exec(res);
   }
 
-  public SalesOrderViewModel create(final UUID customerId, final LocalDate orderDate,
-      final List<SalesOrderControllerParams> details) {
+  public void create(final UUID customerId, final LocalDate orderDate,
+      final List<CreateDetailParam> details) {
 
-    val customer = this.findCustomerUsecase.exec(
-        FindCustomerUsecaseParams
-            .builder()
-            .id(customerId)
-            .build()
-    );
     val input = CreateSalesOrderUsecaseParams.builder()
-        .customer(customer.getCustomer())
+        .customer(this.findCustomerUsecase.exec(FindCustomerUsecaseParams
+                .builder()
+                .id(customerId)
+                .build()
+            ).getCustomer()
+        )
         .orderDate(orderDate)
         .details(details.stream()
-            .map(d -> DetailParams.builder()
+            .map(d -> CreateSalesOrderUsecaseParams.DetailParams.builder()
                 .item(this.findItemUsecase.exec(FindItemUsecaseParams
                         .builder()
                         .id(d.getItemId())
@@ -72,16 +67,17 @@ public class SalesOrderAdapter {
             )
             .collect(Collectors.toList())
         ).build();
-    val res = this.createSalesOrderUsecase.exec(input);
-    return this.presenter.exec(res);
+
+    System.out.println(input);
+    this.createSalesOrderUsecase.exec(input);
   }
 
   @Data
   @Builder
-  public static class SalesOrderControllerParams {
+  public static class CreateDetailParam {
 
-    private final UUID itemId;
-    private final BigDecimal price;
-    private final BigDecimal quantity;
+    private UUID itemId;
+    private BigDecimal price;
+    private BigDecimal quantity;
   }
 }

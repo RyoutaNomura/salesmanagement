@@ -23,6 +23,13 @@ public class SalesOrderDetail {
   private final ZonedDateTime updatedAt;
 
   public static SalesOrderDetailBuilder builder() {
-    return new SalesOrderDetailBuilder().id(UUID.randomUUID());
+    return new SalesOrderDetailBuilder()
+        .id(UUID.randomUUID())
+        .quantity(BigDecimal.ZERO)
+        .price(BigDecimal.ZERO)
+        .amount(BigDecimal.ZERO)
+        .amountWithTax(BigDecimal.ZERO)
+        .createdAt(ZonedDateTime.now())
+        .updatedAt(ZonedDateTime.now());
   }
 }

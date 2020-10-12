@@ -45,6 +45,8 @@ public class SalesOrderRepositoryImpl implements SalesOrderRepository {
               .orderDate(h.getValue(SALES_ORDERS.ORDER_DATE))
               .amount(h.getValue(SALES_ORDERS.AMOUNT))
               .amountWithTax(h.getValue(SALES_ORDERS.AMOUNT_WITH_TAX))
+              .createdAt(h.getValue(SALES_ORDERS.CREATED_AT).toZonedDateTime())
+              .updatedAt(h.getValue(SALES_ORDERS.UPDATED_AT).toZonedDateTime())
               .build();
 
           val lines = this.ctx
@@ -62,6 +64,8 @@ public class SalesOrderRepositoryImpl implements SalesOrderRepository {
               .amount(l.getValue(SALES_ORDER_DETAILS.AMOUNT))
               .amountWithTax(l.getValue(SALES_ORDER_DETAILS.AMOUNT_WITH_TAX))
               .salesOrder(headEntity)
+              .createdAt(l.getValue(SALES_ORDER_DETAILS.CREATED_AT).toZonedDateTime())
+              .updatedAt(l.getValue(SALES_ORDER_DETAILS.UPDATED_AT).toZonedDateTime())
               .build()));
 
           return headEntity;
@@ -71,6 +75,39 @@ public class SalesOrderRepositoryImpl implements SalesOrderRepository {
 
   @Override
   public void save(final SalesOrder salesOrder) {
+    this.ctx.insertInto(SALES_ORDERS)
+        .set(SALES_ORDERS.ID, salesOrder.getId())
+        .set(SALES_ORDERS.SLIP_NUMBER, salesOrder.getSlipNumber())
+        .set(SALES_ORDERS.CUSTOMER_ID, salesOrder.getCustomer().getId())
+        .set(SALES_ORDERS.ORDER_DATE, salesOrder.getOrderDate())
+        .set(SALES_ORDERS.AMOUNT, salesOrder.getAmount())
+        .set(SALES_ORDERS.AMOUNT_WITH_TAX, salesOrder.getAmountWithTax())
+        .set(SALES_ORDERS.CREATED_AT, salesOrder.getCreatedAt().toOffsetDateTime())
+        .set(SALES_ORDERS.UPDATED_AT, salesOrder.getUpdatedAt().toOffsetDateTime())
+        .execute();
 
+    val insert = this.ctx.insertInto(SALES_ORDER_DETAILS,
+        SALES_ORDER_DETAILS.ID,
+        SALES_ORDER_DETAILS.ITEM_ID,
+        SALES_ORDER_DETAILS.QUANTITY,
+        SALES_ORDER_DETAILS.PRICE,
+        SALES_ORDER_DETAILS.AMOUNT,
+        SALES_ORDER_DETAILS.AMOUNT_WITH_TAX,
+        SALES_ORDER_DETAILS.SALES_ORDER_ID,
+        SALES_ORDER_DETAILS.CREATED_AT,
+        SALES_ORDER_DETAILS.UPDATED_AT);
+
+    salesOrder.getDetails().forEach(d -> insert.values(
+        d.getId(),
+        d.getItem().getId(),
+        d.getQuantity(),
+        d.getPrice(),
+        d.getAmount(),
+        d.getAmountWithTax(),
+        d.getSalesOrder().getId(),
+        d.getCreatedAt().toOffsetDateTime(),
+        d.getUpdatedAt().toOffsetDateTime()
+    ));
+    insert.execute();
   }
 }

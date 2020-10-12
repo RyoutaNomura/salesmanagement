@@ -25,7 +25,12 @@ public class SalesOrder {
   private BigDecimal amountWithTax;
 
   public static SalesOrderBuilder builder() {
-    return new SalesOrderBuilder().id(UUID.randomUUID());
+    return new SalesOrderBuilder()
+        .id(UUID.randomUUID())
+        .amount(BigDecimal.ZERO)
+        .amountWithTax(BigDecimal.ZERO)
+        .createdAt(ZonedDateTime.now())
+        .updatedAt(ZonedDateTime.now());
   }
 
   public SalesOrder addDetail(final SalesOrderDetail detail) {
